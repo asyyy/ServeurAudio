@@ -6,12 +6,12 @@
 #include <netinet/in.h>
 #include <netinet/ip.h> 
 #include <arpa/inet.h>
+#include <unistd.h>
 
 int main (){
     int fd, err;
     char msg[64];
     socklen_t len, flen;
-
     struct sockaddr_in addr;
     fd = socket(AF_INET,SOCK_DGRAM,0);
     if(fd<0) {perror("erreur socket");exit(0);}
@@ -27,7 +27,7 @@ int main (){
     len = recvfrom(fd,msg,sizeof(msg),0, (struct sockaddr *) &addr, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     
-    printf("Received %d bytes from host %s port %d: %s \n", err, inet_ntoa(addr.sin_addr), htohs(addr.sin_port),msg);
+    printf("Received %d bytes from host %s port %d: %s \n", err, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port),msg);
     close(fd);
     return 1;
 }

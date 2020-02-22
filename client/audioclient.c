@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 int main (){
     int fd, err;
@@ -16,7 +17,7 @@ int main (){
 
     dest.sin_family         = AF_INET;
     dest.sin_port           = htons(1234);
-    dest.sin_addr.s_addr    = inet_addr("148.60.2.37");
+    dest.sin_addr.s_addr    = inet_addr("127.0.0.1");
 
     err = sendto(fd,msg,strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     if(err<0){perror("Erreur sento ");exit(0);}
