@@ -16,7 +16,11 @@ int main (int argc, char *argv[]){
     }
     int fd, err;
     char *msg = argv[1];
+	char codeFound[1];
+	socklen_t flen;
     printf("Requested song : %s \n",msg);
+
+
 	//initialisation client
     struct sockaddr_in dest;
     fd = socket(AF_INET,SOCK_DGRAM,0);
@@ -29,6 +33,25 @@ int main (int argc, char *argv[]){
 	//envoi 1er message de requête au serveur
     err = sendto(fd,msg,strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     if(err<0){perror("Erreur sento ");exit(0);}
-    close(fd);
+	flen = sizeof(struct sockaddr_in);
+
+
+	//reception du code de retour du serveur (1 si son disponible 0 sinon)
+    err = recvfrom(fd,codeFound,sizeof(codeFound),0, (struct sockaddr *) &dest, &flen); 
+	if(err<0){perror("Erreur recv ");exit(0);}
+	
+	int code = strtol(codeFound, NULL, 10); //conversion en int du message de retour
+	if (code < 1){
+		printf("Musique demandée non disponible \n");
+		return(0);	
+	}
+	printf("Musique disponible, envoi de la requête de lecture au serveur ...\n");
+	
+	//envoi 1er message de requête au serveur
+    err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+    if(err<0){perror("Erreur sento ");exit(0);}
+    printf("Message envoyé, attente des infos du fichier ... \n");
+
+	close(fd);
     return 1;   
 }
