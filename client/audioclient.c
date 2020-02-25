@@ -7,6 +7,7 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "audio.h"
 
 int main (int argc, char *argv[]){
 
@@ -58,37 +59,56 @@ int main (int argc, char *argv[]){
 	int channels;
 	//reception du sample_rate
 	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
-    if(len<0){perror("erreur recvfrom");exit(0);}
+    if(len<0){perror("erreur recvfrom");exit(0);}// TODO attendre le réenvoi de l'information par le serveur
     sample_rate = strtol(bufferInfos, NULL, 10); //passage de "char" à int
 
 	//envoi du ok
 	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
-    if(err<0){perror("Erreur sento ");exit(0);}
+    if(err<0){perror("Erreur sento ");exit(0);} //TODO réenvoyer l'information au serveur
 
 	printf("Reçu sample rate : %d \n",sample_rate);
 
 	//reception du sample_size
 	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
-    if(len<0){perror("erreur recvfrom");exit(0);}
+    if(len<0){perror("erreur recvfrom");exit(0);}// TODO attendre le réenvoi de l'information par le serveur
     sample_size = strtol(bufferInfos, NULL, 10); //passage de "char" à int
 
 	//envoi du ok
 	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
-    if(err<0){perror("Erreur sento ");exit(0);}
+    if(err<0){perror("Erreur sento ");exit(0);} //TODO réenvoyer l'information au serveur
 
 	printf("Reçu sample size : %d \n",sample_size);
 
 	//reception du nb channels
 	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
-    if(len<0){perror("erreur recvfrom");exit(0);}
+    if(len<0){perror("erreur recvfrom");exit(0);} // TODO attendre le réenvoi de l'information par le serveur
     channels = strtol(bufferInfos, NULL, 10); //passage de "char" à int
 
 	//envoi du ok
 	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
-    if(err<0){perror("Erreur sento ");exit(0);}
+    if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au serveur
 
-	printf("Reçu channels : %d \n",channels);
+	printf("Reçu channels : %d \n Fin de la reception des informations, début de la reception du fichier \n",channels);
+
+	int writing = aud_writeinit(sample_rate,sample_size,channels);
+	int buffer[sample_size];
+	ssize_t write1 = write(writing,buffer,sample_size);
 	
+	while(write1 == sample_size){
+
+		len = recvfrom(fd,buffer,sizeof(buffer),0, (struct sockaddr *) &dest, &flen); 
+    	if(len<0){perror("erreur recvfrom");exit(0);} // TODO attendre le réenvoi de l'information par le serveur
+
+		//envoi du ok
+		err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+    	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au serveur
+		usleep(23);
+		write1 = write(writing,buffer,sample_size); 
+	
+	}
+
+	
+	close(writing);
 
 	close(fd);
     return 1;   

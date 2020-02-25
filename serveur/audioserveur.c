@@ -89,7 +89,8 @@ int main (){
 	}
 	
 	printf("Client ok pour la transmission, envoi des infos du fichier \n");
-	char filePath[128]; //chemin entier du fichier a envoyer
+	char filePath[128] = {}; //chemin entier du fichier a envoyer
+	printf("%s\n",filePath);
 	char *dir = "serveur/audio/";
 	char *ext = ".wav";
 	strcat(filePath,dir); // construction 
@@ -98,8 +99,10 @@ int main (){
 	int sample_rate;
 	int sample_size;
 	int channels;
+	
+	printf("Le chemin : %s \n", filePath);
 	int opening = aud_readinit(filePath,&sample_rate,&sample_size,&channels);
-	if(opening < 0) {printf("erreur ouverture fichier");exit(0);}
+	if(opening < 0) {printf("erreur ouverture fichier \n");exit(0);}
 	
     //envoi des infos fichier au client (1 par 1);
 	char infos[16];
@@ -141,6 +144,40 @@ int main (){
 		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
 	
+	//si on arrive ici il faut transmettre les paquets de sorte que le lecteur puisse les lire
+	//load une portion du fichier, l'envoyer, le réenvoyer si retour négatif du client
+	//TODO calculer le temps de wait du client en fonction des paramètres fichiers
+	
+	
+	int bufferInt[sample_size];
+	char bufferChar[sample_size];
+	ssize_t reading = read(opening,bufferInt,sample_size);
+	
+	while(reading == sample_size){
+
+		for (int i = 0 ; i < sample_size ; ++i)
+		{
+    		bufferChar[i] = bufferInt[i] + '0';
+		}
+		
+
+		err = sendto(fd,bufferChar,strlen(bufferChar)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
+    	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au client
+
+		len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+    	if(len<0){perror("erreur recvfrom");exit(0);}
+    	codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
+	
+		if(codeRetour<1){
+			printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+	}
+
+		
+		reading = read(opening,bufferInt,sample_size); 
+	
+	}
+
+	close(opening);
 	close(fd);
     return 1;
 }
