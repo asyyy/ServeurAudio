@@ -152,6 +152,7 @@ int main (){
 	int bufferInt[sample_size];
 	char bufferChar[sample_size];
 	ssize_t reading = read(opening,bufferInt,sample_size);
+	int iteration = 0;
 	
 	while(reading == sample_size){
 
@@ -159,7 +160,13 @@ int main (){
 		{
     		bufferChar[i] = bufferInt[i] + '0';
 		}
+			printf(" sending : ");
 		
+		for (int i = 0 ; i < sample_size ; ++i)
+		{
+    		printf("%d||",bufferInt[i]);
+		}	
+		    printf(" iteration n°%d\n",iteration);
 
 		err = sendto(fd,bufferChar,strlen(bufferChar)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
     	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au client
@@ -170,10 +177,11 @@ int main (){
 	
 		if(codeRetour<1){
 			printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
-	}
+		}
 
 		
 		reading = read(opening,bufferInt,sample_size); 
+		iteration = iteration +1;
 	
 	}
 
