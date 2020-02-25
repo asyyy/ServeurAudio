@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <dirent.h>
+#include "audio.h"
 
 // 1 == vrai et 0 == false
 /**
@@ -73,20 +74,72 @@ int main (){
 	sprintf(codeFound,"%d",found); //pour mettre le int found dans un char[] afin de l'envoyer au client
 
 	//renvoi du message pour savoir si oui ou non on a trouvé la musique
-	err = sendto(fd,codeFound,strlen(codeFound)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
+	err = sendto(fd,codeFound,strlen(codeFound)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
 	if(err<0){perror("Erreur sento ");exit(0);}
 	if(found < 1){printf("Fichier demandé introuvable, arrêt ...\n"); return(0);}
 	
 	//attente de l'ACK du client sur la requete réussie
-	len = recvfrom(fd,msg,sizeof(msg),0, (struct sockaddr *) &addr, &flen); 
+	char ackClient[2];
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
-    int code = strtol(msg, NULL, 10); 
-	if(code<1){
+    int codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
+	
+	if(codeRetour<1){
 		printf("Retour négatif du client, arrêt ... \n"); return(0);
 	}
 	
 	printf("Client ok pour la transmission, envoi des infos du fichier \n");
+	char filePath[128]; //chemin entier du fichier a envoyer
+	char *dir = "serveur/audio/";
+	char *ext = ".wav";
+	strcat(filePath,dir); // construction 
+	strcat(filePath,msg); // du 
+	strcat(filePath,ext); // chemin
+	int sample_rate;
+	int sample_size;
+	int channels;
+	int opening = aud_readinit(filePath,&sample_rate,&sample_size,&channels);
+	if(opening < 0) {printf("erreur ouverture fichier");exit(0);}
 	
+    //envoi des infos fichier au client (1 par 1);
+	char infos[16];
+	sprintf(infos, "%d", sample_rate); //début par le sample_rate
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	if(err<0){perror("Erreur sento ");exit(0);}
+
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
+	
+	if(codeRetour<1){
+		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+	}
+
+	//envoi du sample_size
+	sprintf(infos, "%d", sample_size); 
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	if(err<0){perror("Erreur sento ");exit(0);}
+
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
+	
+	if(codeRetour<1){
+		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+	}
+
+	//envoi du nb de channels
+	sprintf(infos, "%d", channels); 
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	if(err<0){perror("Erreur sento ");exit(0);}
+
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
+	
+	if(codeRetour<1){
+		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+	}
 	
 	close(fd);
     return 1;

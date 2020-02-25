@@ -6,3 +6,23 @@ nom du programme. Par exemple, au lieu de lancer:
 il faut lancer:
 padsp ./a.out
 
+
+DATAGRAMME PROTOCOLE DE TRANSMISSION:
+
+		CLIENT						SERVEUR
+		  |							   |
+		  |      nom de la musique     |
+		  |--------------------------->|
+		  |							   |
+		  |	   code de dsiponibilité   |
+		  |<---------------------------|
+		  |							   |
+          |  ACK de la disponibilité   |
+		  |--------------------------->|
+		  |							   |
+		  |  Envoi des infos musique   |
+		  |<---------------------------|
+		  |							   |
+		  |   ACK des infos musique    |
+		  |--------------------------->|
+	

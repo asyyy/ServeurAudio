@@ -17,7 +17,8 @@ int main (int argc, char *argv[]){
     int fd, err;
     char *msg = argv[1];
 	char codeFound[1];
-	socklen_t flen;
+	char bufferInfos[16];
+	socklen_t flen, len;
     printf("Requested song : %s \n",msg);
 
 
@@ -37,8 +38,8 @@ int main (int argc, char *argv[]){
 
 
 	//reception du code de retour du serveur (1 si son disponible 0 sinon)
-    err = recvfrom(fd,codeFound,sizeof(codeFound),0, (struct sockaddr *) &dest, &flen); 
-	if(err<0){perror("Erreur recv ");exit(0);}
+    len = recvfrom(fd,codeFound,sizeof(codeFound),0, (struct sockaddr *) &dest, &flen); 
+	if(len<0){perror("Erreur recv ");exit(0);}
 	
 	int code = strtol(codeFound, NULL, 10); //conversion en int du message de retour
 	if (code < 1){
@@ -51,6 +52,43 @@ int main (int argc, char *argv[]){
     err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     if(err<0){perror("Erreur sento ");exit(0);}
     printf("Message envoyé, attente des infos du fichier ... \n");
+	
+	int sample_rate;
+	int sample_size;
+	int channels;
+	//reception du sample_rate
+	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    sample_rate = strtol(bufferInfos, NULL, 10); //passage de "char" à int
+
+	//envoi du ok
+	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+    if(err<0){perror("Erreur sento ");exit(0);}
+
+	printf("Reçu sample rate : %d \n",sample_rate);
+
+	//reception du sample_size
+	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    sample_size = strtol(bufferInfos, NULL, 10); //passage de "char" à int
+
+	//envoi du ok
+	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+    if(err<0){perror("Erreur sento ");exit(0);}
+
+	printf("Reçu sample size : %d \n",sample_size);
+
+	//reception du nb channels
+	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
+    if(len<0){perror("erreur recvfrom");exit(0);}
+    channels = strtol(bufferInfos, NULL, 10); //passage de "char" à int
+
+	//envoi du ok
+	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+    if(err<0){perror("Erreur sento ");exit(0);}
+
+	printf("Reçu channels : %d \n",channels);
+	
 
 	close(fd);
     return 1;   
