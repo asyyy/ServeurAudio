@@ -26,3 +26,10 @@ DATAGRAMME PROTOCOLE DE TRANSMISSION:
 		  |   ACK des infos musique    |
 		  |--------------------------->|
 	
+Pour tester le fonctionnement
+
+1 - make client et make serveur
+1bis - si erreur dans le make vider le dossier obj/
+2 - lancer ./serveur/audioserveur
+3 - lancer en parallèle ./client/audioclient nomdelamusique (SANS .wav à la fin)
+3bis - pour avoir les noms des fichiers dispos see /serveur/audio
