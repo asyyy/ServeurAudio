@@ -25,6 +25,11 @@ DATAGRAMME PROTOCOLE DE TRANSMISSION:
 		  |							   |
 		  |   ACK des infos musique    |
 		  |--------------------------->|
+		  |							   |
+		  |   Envoi de la musique      |
+		  |<---------------------------|
+		  |                            |
+		  |                            |
 	
 Pour tester le fonctionnement
 

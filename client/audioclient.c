@@ -91,21 +91,20 @@ int main (int argc, char *argv[]){
 	printf("Reçu channels : %d \n Fin de la reception des informations, début de la reception du fichier \n",channels);
 
 	int writing = aud_writeinit(sample_rate,sample_size,channels);
-	char bufferChar[sample_size];
 	int bufferInt[sample_size];
 	ssize_t write1 = write(writing,bufferInt,sample_size);
 	int iteration = 0;
 	while(write1 == sample_size){
 
-		len = recvfrom(fd,bufferChar,sizeof(bufferChar),0, (struct sockaddr *) &dest, &flen); 
+		len = recvfrom(fd,bufferInt,(sizeof(bufferInt)/sizeof(int))+1,0, (struct sockaddr *) &dest, &flen); 
     	if(len<0){perror("erreur recvfrom");exit(0);} // TODO attendre le réenvoi de l'information par le serveur
 		
-		printf(" received : %s itération n°: %d \n",bufferChar, iteration);
+		/*printf(" received : %s itération n°: %d \n",bufferChar, iteration);
     	for (int i = 0 ; i < sample_size ; ++i)
 		{
     		bufferInt[i] = bufferChar[i] - '0';
-		}
-		usleep(1);
+		}*/
+	
 		//envoi du ok
 		err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au serveur

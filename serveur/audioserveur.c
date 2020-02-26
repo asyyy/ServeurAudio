@@ -150,13 +150,13 @@ int main (){
 	
 	
 	int bufferInt[sample_size];
-	char bufferChar[sample_size];
+	//char bufferChar[sample_size];
 	ssize_t reading = read(opening,bufferInt,sample_size);
 	int iteration = 0;
 	
 	while(reading == sample_size){
 
-		for (int i = 0 ; i < sample_size ; ++i)
+		/*for (int i = 0 ; i < sample_size ; ++i)
 		{
     		bufferChar[i] = bufferInt[i] + '0';
 		}
@@ -166,9 +166,9 @@ int main (){
 		{
     		printf("%d||",bufferInt[i]);
 		}	
-		    printf(" iteration n°%d\n",iteration);
+		    printf(" iteration n°%d\n",iteration);*/
 
-		err = sendto(fd,bufferChar,strlen(bufferChar)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
+		err = sendto(fd,bufferInt,(sizeof(bufferInt)/sizeof(int))+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
     	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au client
 
 		len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
