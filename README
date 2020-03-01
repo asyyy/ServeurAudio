@@ -14,7 +14,7 @@ DATAGRAMME PROTOCOLE DE TRANSMISSION:
 		  |      nom de la musique     |
 		  |--------------------------->|
 		  |							   |
-		  |	   code de dsiponibilité   |
+		  |	   code de disponibilité   |
 		  |<---------------------------|
 		  |							   |
           |  ACK de la disponibilité   |
