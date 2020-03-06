@@ -55,15 +55,21 @@ int main (){
 
     addr.sin_family         = AF_INET;
     addr.sin_port           = htons(1234); //port arbitrairement mis @1234 mais possibilité de changer /!\ si changement le changer aussi dans /client/audioclient.c
-    addr.sin_addr.s_addr    = inet_addr("127.0.0.1");
+    addr.sin_addr.s_addr    = inet_addr("148.60.2.42");
 
     err = bind(fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
     if(err<0) {perror("erreur bind");exit(0);}
-    
+    struct sockaddr_in dest = {0};
     flen = sizeof(struct sockaddr_in);
 	//attente de la requête client
-    len = recvfrom(fd,msg,sizeof(msg),0, (struct sockaddr *) &addr, &flen); 
+    len = recvfrom(fd,msg,sizeof(msg),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
+    
+    struct sockaddr_in addrClient;
+    
+    addrClient.sin_family        = AF_INET;
+    addrClient.sin_port        = htons(1234);
+    addrClient.sin_addr.s_addr        =;
     
 
 
@@ -74,13 +80,13 @@ int main (){
 	sprintf(codeFound,"%d",found); //pour mettre le int found dans un char[] afin de l'envoyer au client
 
 	//renvoi du message pour savoir si oui ou non on a trouvé la musique
-	err = sendto(fd,codeFound,strlen(codeFound)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	err = sendto(fd,codeFound,strlen(codeFound)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in))	;
 	if(err<0){perror("Erreur sento ");exit(0);}
 	if(found < 1){printf("Fichier demandé introuvable, arrêt ...\n"); return(0);}
 	
 	//attente de l'ACK du client sur la requete réussie
 	char ackClient[2];
-	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     int codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
@@ -107,10 +113,10 @@ int main (){
     //envoi des infos fichier au client (1 par 1);
 	char infos[16];
 	sprintf(infos, "%d", sample_rate); //début par le sample_rate
-	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
 	if(err<0){perror("Erreur sento ");exit(0);}
 
-	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
@@ -120,28 +126,28 @@ int main (){
 
 	//envoi du sample_size
 	sprintf(infos, "%d", sample_size); 
-	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in))	;
 	if(err<0){perror("Erreur sento ");exit(0);}
 
-	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
 	if(codeRetour<1){
-		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+		printf("Retour négatif du client, arrêt 1... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
 
 	//envoi du nb de channels
 	sprintf(infos, "%d", channels); 
-	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in))	;
+	err = sendto(fd,infos,strlen(infos)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in))	;
 	if(err<0){perror("Erreur sento ");exit(0);}
 
-	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
 	if(codeRetour<1){
-		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
+		printf("Retour négatif du client, arrêt 2... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
 	
 	//si on arrive ici il faut transmettre les paquets de sorte que le lecteur puisse les lire
@@ -150,28 +156,17 @@ int main (){
 	
 	
 	int bufferInt[sample_size];
+
 	//char bufferChar[sample_size];
 	ssize_t reading = read(opening,bufferInt,sample_size);
-	int iteration = 0;
+
 	
 	while(reading == sample_size){
 
-		/*for (int i = 0 ; i < sample_size ; ++i)
-		{
-    		bufferChar[i] = bufferInt[i] + '0';
-		}
-			printf(" sending : ");
-		
-		for (int i = 0 ; i < sample_size ; ++i)
-		{
-    		printf("%d||",bufferInt[i]);
-		}	
-		    printf(" iteration n°%d\n",iteration);*/
-
-		err = sendto(fd,bufferInt,(sizeof(bufferInt)/sizeof(int))+1,0,(struct sockaddr *) &addr,sizeof(struct sockaddr_in));
+		err = sendto(fd,bufferInt,(sizeof(bufferInt)/sizeof(int))+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au client
 
-		len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &addr, &flen); 
+		len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     	if(len<0){perror("erreur recvfrom");exit(0);}
     	codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
@@ -180,9 +175,8 @@ int main (){
 		}
 
 		
-		reading = read(opening,bufferInt,sample_size); 
-		iteration = iteration +1;
-	
+		reading = read(opening,bufferInt,sample_size);
+        
 	}
 
 	close(opening);

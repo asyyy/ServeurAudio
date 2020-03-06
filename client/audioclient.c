@@ -30,7 +30,7 @@ int main (int argc, char *argv[]){
 
     dest.sin_family         = AF_INET;
     dest.sin_port           = htons(1234); //port arbitrairement mis @1234 mais possibilité de changer /!\ si changement le changer aussi dans /serveur/audioserveur.c
-    dest.sin_addr.s_addr    = inet_addr("127.0.0.1");
+    dest.sin_addr.s_addr    = inet_addr("148.60.2.42");
 	
 	//envoi 1er message de requête au serveur
     err = sendto(fd,msg,strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
@@ -103,12 +103,14 @@ int main (int argc, char *argv[]){
     	for (int i = 0 ; i < sample_size ; ++i)
 		{
     		bufferInt[i] = bufferChar[i] - '0';
-		}*/
-	
+		}
+        */
+       
+        write1 = write(writing,bufferInt,sample_size);
 		//envoi du ok
 		err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
-    	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au serveur
-		write1 = write(writing,bufferInt,sample_size); 
+    	if(err<0){perror("Erreur sento ");exit(0);}//TODO réenvoyer l'information au serveur 
+		
 		iteration = iteration + 1;
 	
 	}
