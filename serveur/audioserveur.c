@@ -55,7 +55,7 @@ int main (){
 
     addr.sin_family         = AF_INET;
     addr.sin_port           = htons(1234); //port arbitrairement mis @1234 mais possibilité de changer /!\ si changement le changer aussi dans /client/audioclient.c
-    addr.sin_addr.s_addr    = inet_addr("148.60.2.42");
+    addr.sin_addr.s_addr    = inet_addr("148.60.2.164");
 
     err = bind(fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
     if(err<0) {perror("erreur bind");exit(0);}
@@ -65,12 +65,7 @@ int main (){
     len = recvfrom(fd,msg,sizeof(msg),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     
-    struct sockaddr_in addrClient;
-    
-    addrClient.sin_family        = AF_INET;
-    addrClient.sin_port        = htons(1234);
-    addrClient.sin_addr.s_addr        =;
-    
+    in_addr_t addrClient = dest.sin_addr.s_addr;
 
 
     printf("Received a request for a song : %s \n",msg);
@@ -89,7 +84,12 @@ int main (){
 	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     int codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
-	
+	while(dest.sin_addr.s_addr != addrClient){
+            err = sendto(fd,"3",sizeof(int)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+            dest.sin_addr.s_addr = addrClient;
+            len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen);
+            
+        }
 	if(codeRetour<1){
 		printf("Retour négatif du client, arrêt ... \n"); return(0);
 	}
@@ -119,7 +119,12 @@ int main (){
 	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
-	
+	while(dest.sin_addr.s_addr != addrClient){
+            err = sendto(fd,"3",sizeof(int)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+            dest.sin_addr.s_addr = addrClient;
+            len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen);
+            
+        }
 	if(codeRetour<1){
 		printf("Retour négatif du client, arrêt ... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
@@ -132,7 +137,12 @@ int main (){
 	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
-	
+	while(dest.sin_addr.s_addr != addrClient){
+            err = sendto(fd,"3",sizeof(int)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+            dest.sin_addr.s_addr = addrClient;
+            len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen);
+            
+        }
 	if(codeRetour<1){
 		printf("Retour négatif du client, arrêt 1... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
@@ -145,7 +155,12 @@ int main (){
 	len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}
     codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
-	
+	while(dest.sin_addr.s_addr != addrClient){
+            err = sendto(fd,"3",sizeof(int)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+            dest.sin_addr.s_addr = addrClient;
+            len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen);
+            
+        }
 	if(codeRetour<1){
 		printf("Retour négatif du client, arrêt 2... \n"); return(0); // TODO changer ça pour qu'il réenvoi le parametre
 	}
@@ -168,6 +183,12 @@ int main (){
 
 		len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen); 
     	if(len<0){perror("erreur recvfrom");exit(0);}
+        while(dest.sin_addr.s_addr != addrClient){
+                err = sendto(fd,"3",sizeof(int)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
+                dest.sin_addr.s_addr = addrClient;
+                len = recvfrom(fd,ackClient,sizeof(ackClient),0, (struct sockaddr *) &dest, &flen);
+            
+        }
     	codeRetour = strtol(ackClient, NULL, 10); //passage de "1" à 1(int)
 	
 		if(codeRetour<1){

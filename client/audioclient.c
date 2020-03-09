@@ -30,7 +30,7 @@ int main (int argc, char *argv[]){
 
     dest.sin_family         = AF_INET;
     dest.sin_port           = htons(1234); //port arbitrairement mis @1234 mais possibilité de changer /!\ si changement le changer aussi dans /serveur/audioserveur.c
-    dest.sin_addr.s_addr    = inet_addr("148.60.2.42");
+    dest.sin_addr.s_addr    = inet_addr("148.60.2.164");
 	
 	//envoi 1er message de requête au serveur
     err = sendto(fd,msg,strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
@@ -43,10 +43,15 @@ int main (int argc, char *argv[]){
 	if(len<0){perror("Erreur recv ");exit(0);}
 	
 	int code = strtol(codeFound, NULL, 10); //conversion en int du message de retour
-	if (code < 1){
+    printf(" code recu %d \n",code);
+	if (code == 0){
 		printf("Musique demandée non disponible \n");
 		return(0);	
 	}
+    else if (code == 3){
+         printf("Serveur occupé \n");
+		return(0);	
+    }
 	printf("Musique disponible, envoi de la requête de lecture au serveur ...\n");
 	
 	//envoi 1er message de requête au serveur
@@ -61,7 +66,7 @@ int main (int argc, char *argv[]){
 	len = recvfrom(fd,bufferInfos,sizeof(bufferInfos),0, (struct sockaddr *) &dest, &flen); 
     if(len<0){perror("erreur recvfrom");exit(0);}// TODO attendre le réenvoi de l'information par le serveur
     sample_rate = strtol(bufferInfos, NULL, 10); //passage de "char" à int
-
+    
 	//envoi du ok
 	err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
     if(err<0){perror("Erreur sento ");exit(0);} //TODO réenvoyer l'information au serveur
@@ -99,13 +104,7 @@ int main (int argc, char *argv[]){
 		len = recvfrom(fd,bufferInt,(sizeof(bufferInt)/sizeof(int))+1,0, (struct sockaddr *) &dest, &flen); 
     	if(len<0){perror("erreur recvfrom");exit(0);} // TODO attendre le réenvoi de l'information par le serveur
 		
-		/*printf(" received : %s itération n°: %d \n",bufferChar, iteration);
-    	for (int i = 0 ; i < sample_size ; ++i)
-		{
-    		bufferInt[i] = bufferChar[i] - '0';
-		}
-        */
-       
+
         write1 = write(writing,bufferInt,sample_size);
 		//envoi du ok
 		err = sendto(fd,"1",strlen(msg)+1,0,(struct sockaddr *) &dest,sizeof(struct sockaddr_in));
