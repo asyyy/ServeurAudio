@@ -16,7 +16,7 @@ int main (int argc, char *argv[]){
 		return(0);
     }
     int fd, err;
-    char *msg = argv[2];
+    char *msg = argv[2];pas de fichier demandé 
 	char codeFound[1];
 	char bufferInfos[16];
 	socklen_t flen, len;
